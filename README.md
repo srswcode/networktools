@@ -1,2 +1,2 @@
-# networktools-portscanner.py
+# networktools
 Port scanner
