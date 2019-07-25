@@ -1,0 +1,1145 @@
+Directories
+
+The module called os contains functions to get information on local directories, files, processes, and environment variables.
+
+os.getcwd()
+
+The current working directory is a property that Python holds in memory at all times. There is always a current working directory, whether we're in the Python Shell, running our own Python script from the command line, etc.
+
+>>> import os
+>>> print(os.getcwd())
+C:\Python32
+>>> os.chdir('/test')
+>>> print(os.getcwd())
+C:\test
+
+We used the os.getcwd() function to get the current working directory. When we run the graphical Python Shell, the current working directory starts as the directory where the Python Shell executable is. On Windows, this depends on where we installed Python; the default directory is c:\Python32. If we run the Python Shell from the command line, the current working directory starts as the directory we were in when we ran python3.
+
+Then, we used the os.chdir() function to change the current working directory. Note that when we called the os.chdir() function, we used a Linux-style pathname (forward slashes, no drive letter) even though we're on Windows. This is one of the places where Python tries to paper over the differences between operating systems.
+
+
+
+
+os.path.join()
+
+os.path contains functions for manipulating filenames and directory names.
+
+>>> import os
+>>> print(os.path.join('/test/', 'myfile'))
+/test/myfile
+>>> print(os.path.expanduser('~'))
+C:\Users\K
+>>> print(os.path.join(os.path.expanduser('~'),'dir', 'subdir', 'k.py'))
+C:\Users\K\dir\subdir\k.py
+
+The os.path.join() function constructs a pathname out of one or more partial pathnames. In this case, it simply concatenates strings. Calling the os.path.join() function will add an extra slash to the pathname before joining it to the filename.
+
+The os.path.expanduser() function will expand a pathname that uses ~ to represent the current user's home directory. This works on any platform where users have a home directory, including Linux, Mac OS X, and Windows. The returned path does not have a trailing slash, but the os.path.join() function doesn't mind.
+
+Combining these techniques, we can easily construct pathnames for directories and files in the user's home directory. The os.path.join() function can take any number of arguments.
+
+Note: we need to be careful about the string when we use os.path.join. If we use "/", it tells Python that we're using absolute path, and it overrides the path before it:
+
+>>> import os
+>>> print(os.path.join('/test/', '/myfile'))
+/myfile
+
+As we can see the path "/test/" is gone!
+
+
+
+
+os.path.split()
+
+os.path also contains functions to split full pathnames, directory names, and filenames into their constituent parts.
+
+>>> pathname = "/Users/K/dir/subdir/k.py"
+>>> os.path.split(pathname)
+('/Users/K/dir/subdir', 'k.py')
+>>> (dirname, filename) = os.path.split(pathname)
+>>> dirname
+'/Users/K/dir/subdir'
+>>> pathname
+'/Users/K/dir/subdir/k.py'
+>>> filename
+'k.py'
+>>> (shortname, extension) = os.path.splitext(filename)
+>>> shortname
+'k'
+>>> extension
+'.py'
+
+The split() function splits a full pathname and returns a tuple containing the path and filename. The os.path.split() function does return multiple values. We assign the return value of the split function into a tuple of two variables. Each variable receives the value of the corresponding element of the returned tuple. The first variable, dirname, receives the value of the first element of the tuple returned from the os.path.split() function, the file path. The second variable, filename, receives the value of the second element of the tuple returned from the os.path.split() function, the filename.
+
+os.path also contains the os.path.splitext() function, which splits a filename and returns a tuple containing the filename and the file extension. We used the same technique to assign each of them to separate variables.
+
+
+
+
+glob.glob()
+
+The glob module is another tool in the Python standard library. It's an easy way to get the contents of a directory programmatically, and it uses the sort of wildcards that we may already be familiar with from working on the command line.
+
+>>> import glob
+>>> os.chdir('/test')
+>>> import glob
+>>> glob.glob('subdir/*.py')
+['subdir\\tes3.py', 'subdir\\test1.py', 'subdir\\test2.py']
+
+The glob module takes a wildcard and returns the path of all files and directories matching the wildcard.
+
+
+File metadata
+
+Every file system stores metadata about each file: creation date, last-modified date, file size, and so on. Python provides a single API to access this metadata. We don't need to open the file and all we need is the filename.
+
+>>> import os
+>>> print(os.getcwd())
+C:\test
+>>> os.chdir('subdir')
+>>> print(os.getcwd())
+C:\test\subdir
+>>> metadata = os.stat('test1.py')
+>>> metadata.st_mtime
+1359868355.9555483
+>>> import time
+>>> time.localtime(metadata.st_mtime)
+time.struct_time(tm_year=2013, tm_mon=2, tm_mday=2, tm_hour=21, 
+tm_min=12, tm_sec=35, tm_wday=5, tm_yday=33, tm_isdst=0)
+>>> metadata.st_size
+1844
+
+Calling the os.stat() function returns an object that contains several different types of metadata about the file. st_mtime is the modification time, but it's in a format that isn't terribly useful. Actually, it's the number of seconds since the Epoch, which is defined as the first second of January 1st, 1970.
+
+The time module is part of the Python standard library. It contains functions to convert between different time representations, format time values into strings, and fiddle with timezones.
+
+The time.localtime() function converts a time value from seconds-since-the-Epoch (from the st_mtime property returned from the os.stat() function) into a more useful structure of year, month, day, hour, minute, second, and so on. This file was last modified on Feb 2, 2013, at around 9:12 PM.
+
+The os.stat() function also returns the size of a file, in the st_size property. The file "test1.py" is 1844 bytes.
+
+
+os.path.realpath() - Absolute pathname
+
+The glob.glob() function returned a list of relative pathnames. If weu want to construct an absolute pathname - i.e. one that includes all the directory names back to the root directory or drive letter - then we'll need the os.path.realpath() function.
+
+>>> import os
+>>> print(os.getcwd())
+C:\test\subdir
+>>> print(os.path.realpath('test1.py'))
+C:\test\subdir\test1.py
+
+
+
+os.path.expandvars() - Env. variable
+
+The expandvars function inserts environment variables into a filename.
+
+>>> import os
+>>> os.environ['SUBDIR'] = 'subdir'
+>>> print(os.path.expandvars('/home/users/K/$SUBDIR'))
+/home/users/K/subdir
+
+
+
+
+
+Opening Files
+
+To open a file, we use built-in open() function:
+
+myfile = open('mydir/myfile.txt', 'w')
+
+The open() function takes a filename as an argument. Here the filename is mydir/myfile.txt, and the next argument is a processing mode. The mode is usually the string 'r' to open text input (this is the default mode), 'w' to create and open open for text output. The string 'a' is to open for appending text to the end. The mode argument can specify additional options: adding a 'b' to the mode string allows for binary data, and adding a + opens the file for both input and output.
+
+The table below lists several combination of the processing modes:
+
+Mode 	Description
+r 	Opens a file for reading only. The file pointer is placed at the beginning of the file. This is the default mode.
+rb 	Opens a file for reading only in binary format. The file pointer is placed at the beginning of the file. This is the default mode.
+r+ 	Opens a file for both reading and writing. The file pointer will be at the beginning of the file.
+rb+ 	Opens a file for both reading and writing in binary format. The file pointer will be at the beginning of the file.
+w 	Opens a file for writing only. Overwrites the file if the file exists. If the file does not exist, creates a new file for writing.
+wb 	Opens a file for writing only in binary format. Overwrites the file if the file exists. If the file does not exist, creates a new file for writing.
+w+ 	Opens a file for both writing and reading. Overwrites the existing file if the file exists. If the file does not exist, creates a new file for reading and writing.
+a 	Opens a file for appending. The file pointer is at the end of the file if the file exists. That is, the file is in the append mode. If the file does not exist, it creates a new file for writing.
+ab 	Opens a file for appending in binary format. The file pointer is at the end of the file if the file exists. That is, the file is in the append mode. If the file does not exist, it creates a new file for writing.
+a+ 	Opens a file for both appending and reading. The file pointer is at the end of the file if the file exists. The file opens in the append mode. If the file does not exist, it creates a new file for reading and writing.
+ab+ 	Opens a file for both appending and reading in binary format. The file pointer is at the end of the file if the file exists. The file opens in the append mode. If the file does not exist, it creates a new file for reading and writing.
+
+There are things we should know about the filename:
+
+    It's not just the name of a file. It's a combination of a directory path and a filename. In Python, whenever we need a filename, we can include some or all of a directory path as well.
+
+    The directory path uses a forward slash without mentioning operating system. Windows uses backward slashes to denote subdirectories, while Linux use forward slashes. But in Python, forward slashes always work, even on Windows.
+
+    The directory path does not begin with a slash or a drive letter, so it is called a relative path.
+
+    It's a string. All modern operating systems use Unicode to store the names of files and directories. Python 3 fully supports non-ASCII pathnames.
+
+
+
+Character Encoding
+
+A string is a sequence of Unicode characters. A file on disk is not a sequence of Unicode characters but rather a sequence of bytes. So if we read a file from disk, how does Python convert that sequence of bytes into a sequence of characters?
+Internally, Python decodes the bytes according to a specific character encoding algorithm and returns a sequence of Unicode character string.
+
+I have a file ('Alone.txt'):
+
+나 혼자 (Alone) - By Sistar
+추억이 이리 많을까 넌 대체 뭐할까
+아직 난 이래 혹시 돌아 올까 봐
+
+Let's try to read the file:
+
+>>> file = open('Alone.txt')
+>>> str = file.read()
+Traceback (most recent call last):
+  File "", line 1, in 
+    str = file.read()
+  File "C:\Python32\lib\encodings\cp1252.py", line 23, in decode
+    return codecs.charmap_decode(input,self.errors,decoding_table)[0]
+UnicodeDecodeError: 'charmap' codec can't decode byte 0x90 in position 6: character maps to 
+>>> 
+
+What just happened?
+We didn't specify a character encoding, so Python is forced to use the default encoding.
+What's the default encoding? If we look closely at the traceback, we can see that it's crashing in cp1252.py, meaning that Python is using CP-1252 as the default encoding here. (CP-1252 is a common encoding on computers running Microsoft Windows.) The CP-1252 character set doesn't support the characters that are in this file, so the read fails with an UnicodeDecodeError.
+
+Actually, when I display the Korean character, I had to put the following lines of html to the header section:
+
+<!--
+  <meta http-equiv="Content-Type"
+ content="text/html; charset=ISO-8859-1" /> -->
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+
+
+ASCII and Unicode
+
+There are character encodings for each major language in the world. Since each language is different, and memory and disk space have historically been expensive, each character encoding is optimized for a particular language. Each encoding using the same numbers (0-255) to represent that language's characters. For instance, the ASCII encoding, which stores English characters as numbers ranging from 0 to 127. (65 is capital A, 97 is lowercase a). English has a very simple alphabet, so it can be completely expressed in less than 128 numbers.
+
+Western European languages like French, Spanish, and German have more letters than English. The most common encoding for these languages is CP-1252. The CP-1252 encoding shares characters with ASCII in the 0-127 range, but then extends into the 128-255 range for characters like ñ, ü, etc. It's still a single-byte encoding, though; the highest possible number, 255, still fits in one byte.
+
+Then there are languages like Chinese and Korean, which have so many characters that they require multiple-byte character sets. That is, each character is represented by a two-byte number (0-65535). But different multi-byte encodings still share the same problem as different single-byte encodings, namely that they each use the same numbers to mean different things. It's just that the range of numbers is broader, because there are many more characters to represent.
+
+Unicode is designed to represent every character from every language. Unicode represents each letter, character, or ideograph as a 4-byte number. Each number represents a unique character used in at least one of the world's languages. There is exactly 1 number per character, and exactly 1 character per number. Every number always means just one thing; there are no modes to keep track of. U+0061 is always 'a', even if a language doesn't have an 'a' in it.
+
+This appears to be a great idea. One encoding to rule them all. Multiple languages per document. No more mode switching to switch between encodings mid-stream. But Four bytes for every single character? That is really wasteful, especially for languages like English and Spanish, which need less than one byte (256 numbers) to express every possible character.
+
+Unicode - UTF-32
+
+There is a Unicode encoding that uses four bytes per character. It's called UTF-32, because 32 bits = 4 bytes. UTF-32 is a straightforward encoding; it takes each Unicode character (a 4-byte number) and represents the character with that same number. This has some advantages, the most important being that we can find the Nth character of a string in constant time, because the Nth character starts at the 4xNth byte. It also has several disadvantages, the most obvious being that it takes four freaking bytes to store every freaking character.
+
+Unicode - UTF-16
+
+Even though there are a lot of Unicode characters, it turns out that most people will never use anything beyond the first 65535. Thus, there is another Unicode encoding, called UTF-16 (because 16 bits = 2 bytes). UTF-16 encodes every character from 0-65535 as two bytes, then uses some dirty hacks if we actually need to represent the rarely-used Unicode characters beyond 65535. Most obvious advantage: UTF-16 is twice as space-efficient as UTF-32, because every character requires only two bytes to store instead of four bytes. And we can still easily find the Nth character of a string in constant time.
+
+But there are also non-obvious disadvantages to both UTF-32 and UTF-16. Different computer systems store individual bytes in different ways. That means that the character U+4E2D could be stored in UTF-16 as either 4E 2D or 2D 4E, depending on whether the system is big-endian or little-endian. (For UTF-32, there are even more possible byte orderings.)
+
+To solve this problem, the multi-byte Unicode encodings define a Byte Order Mark, which is a special non-printable character that we can include at the beginning of our document to indicate what order our bytes are in. For UTF-16, the Byte Order Mark is U+FEFF. If we receive a UTF-16 document that starts with the bytes FF FE, we know the byte ordering is one way; if it starts with FE FF, we know the byte ordering is reversed.
+
+Still, UTF-16 isn't exactly ideal, especially if we're dealing with a lot of ASCII characters. If we think about it, even a Chinese web page is going to contain a lot of ASCII characters - all the elements and attributes surrounding the printable Chinese characters. Being able to find the Nth character in constant time is nice, but we can't guarantee that every character is exactly two bytes, so we can't really find the Nth character in constant time unless we maintain a separate index.
+
+Unicode - UTF-8
+
+UTF-8 is a variable-length encoding system for Unicode. That is, different characters take up a different number of bytes. For ASCII characters (A-Z) UTF-8 uses just one byte per character. In fact, it uses the exact same bytes; the first 128 characters (0-127) in UTF-8 are indistinguishable from ASCII. Extended Latin characters like ñ and ü end up taking two bytes. (The bytes are not simply the Unicode code point like they would be in UTF-16; there is some serious bit-twiddling involved.) Chinese characters like ç end up taking three bytes. The rarely-used astral plane characters take four bytes.
+
+Disadvantages: because each character can take a different number of bytes, finding the Nth character is an O(N) operation - that is, the longer the string, the longer it takes to find a specific character. Also, there is bit-twiddling involved to encode characters into bytes and decode bytes into characters.
+
+Advantages: super-efficient encoding of common ASCII characters. No worse than UTF-16 for extended Latin characters. Better than UTF-32 for Chinese characters. Also there are no byte-ordering issues. A document encoded in utf-8 uses the exact same stream of bytes on any computer.
+
+
+
+File Object
+
+The open() function returns a file object, which has methods and attributes for getting information about and manipulating a stream of characters.
+
+>>> file = open('Alone.txt')
+>>> file.mode
+'r'
+>>> file.name
+'Alone.txt'
+>>> file.encoding
+'cp1252'
+
+If we specify the encoding:
+
+>>> # -*- coding: utf-8 -*-
+>>> file = open('Alone.txt', encoding='utf-8')
+>>> file.encoding
+'utf-8'
+>>> str = file.read()
+>>> str
+'나 혼자 (Alone) - By Sistar\n추억이 이리 많을까 넌 대체 뭐할까\n아직 난 이래 혹시 돌아 올까 봐\n'
+
+The first line was encoding declaration which needed to make the Python aware of Korean.
+
+The name attribute reflects the name we passed in to the open() function when we opened the file. The encoding attribute reflects the encoding we passed in to the open() function. If we didn't specify the encoding when we opened the file, then the encoding attribute will reflect locale.getpreferredencoding(). The mode attribute tells us in which mode the file was opened. We can pass an optional mode parameter to the open() function. We didn't specify a mode when we opened this file, so Python defaults to 'r', which means open for reading only, in text mode. The file mode serves several purposes; different modes let us write to a file, append to a file, or open a file in binary mode.
+
+read()
+
+>>> file = open('Alone.txt', encoding='utf-8')
+>>> str = file.read()
+>>> str
+'나 혼자 (Alone) - By Sistar\n추억이 이리 많을까 넌 대체 뭐할까\n아직 난 이래 혹시 돌아 올까 봐\n'
+>>> file.read()
+''
+
+Reading the file again does not raise an exception. Python does not consider reading past end-of-file to be an error; it simply returns an empty string.
+
+>>> file.read()
+''
+
+Since we're still at the end of the file, further calls to the stream object's read() method simply return an empty string.
+
+>>> file.seek(0)
+0
+
+The seek() method moves to a specific byte position in a file.
+
+>>> file.read(10)
+'나 혼자 (Alon'
+>>> file.seek(0)
+0
+>>> file.read(15)
+'나 혼자 (Alone) - '
+>>> file.read(1)
+'B'
+>>> file.read(10)
+'y Sistar\n추'
+>>> file.tell()
+34
+
+The read() method can take an optional parameter, the number of characters to read. We can also read one character at a time. The seek() and tell() methods always count bytes, but since we opened this file as text, the read() method counts characters. Korean characters require multiple bytes to encode in UTF-8. The English characters in the file only require one byte each, so we might be misled into thinking that the seek() and read() methods are counting the same thing. But that's only true for some characters.
+
+close()
+
+It's important to close files as soon as we're done with them because open files consume system resources, and depending on the file mode, other programs may not be able to access them.
+
+>>> file.close()
+>>> file.read()
+Traceback (most recent call last):
+  File "", line 1, in 
+    file.read()
+ValueError: I/O operation on closed file.
+>>> file.seek(0)
+Traceback (most recent call last):
+  File "", line 1, in 
+    file.seek(0)
+ValueError: I/O operation on closed file.
+>>> file.tell()
+Traceback (most recent call last):
+  File "", line 1, in 
+    file.tell()
+ValueError: I/O operation on closed file.
+>>> file.close()
+>>> file.closed
+True
+
+    We can't read from a closed file; that raises an IOError exception.
+
+    We can't seek in a closed file either.
+
+    There's no current position in a closed file, so the tell() method also fails.
+
+    Calling the close() method on a stream object whose file has been closed does not raise an exception. It's just a no-op.
+
+    Closed stream objects do have one useful attribute: the closed attribute will confirm that the file is closed.
+
+
+"with" statement
+
+Stream objects have an explicit close() method, but what happens if our code has a bug and crashes before we call close()? That file could theoretically stay open for longer than necessary.
+
+Probably, we could use the try..finally block. But we have a cleaner solution, which is now the preferred solution in Python 3: the with statement:
+
+>>> with open('Alone.txt', encoding='utf-8') as file:
+	file.seek(16)
+	char = file.read(1)
+	print(char)
+
+	
+16
+o
+
+The code above never calls file.close(). The with statement starts a code block, like an if statement or a for loop. Inside this code block, we can use the variable file as the stream object returned from the call to open(). All the regular stream object methods are available - seek(), read(), whatever we need. When the with block ends, Python calls file.close() automatically.
+
+Note that no matter how or when we exit the with block, Python will close that file even if we exit it via an unhandled exception. In other words, even if our code raises an exception and our entire program comes to a halt, that file will get closed. Guaranteed.
+
+Actually, the with statement creates a runtime context. In these examples, the stream object acts as a context manager. Python creates the stream object file and tells it that it is entering a runtime context. When the with code block is completed, Python tells the stream object that it is exiting the runtime context, and the stream object calls its own close() method.
+
+There's nothing file-specific about the with statement; it's just a generic framework for creating runtime contexts and telling objects that they're entering and exiting a runtime context. If the object in question is a stream object, then it closes the file automatically. But that behavior is defined in the stream object, not in the with statement. There are lots of other ways to use context managers that have nothing to do with files.
+
+Reading lines one by one
+
+A line of text is a sequence of characters delimited by what exactly? Well, it's complicated, because text files can use several different characters to mark the end of a line. Every operating system has its own convention. Some use a carriage return character(\r), others use a line feed character(\n), and some use both characters(\r\n) at the end of every line.
+
+However, Python handles line endings automatically by default. Python will figure out which kind of line ending the text file uses and and it will all the work for us.
+
+# line.py
+
+lineCount = 0
+with open('Daffodils.txt', encoding='utf-8') as file:
+    for line in file:
+        lineCount += 1
+        print('{:<5} {}'.format(lineCount, line.rstrip())) 
+
+If we run it:
+
+C:\TEST> python line.py
+1     I wandered lonely as a cloud
+2     That floats on high o'er vales and hills,
+3     When all at once I saw a crowd,
+4     A host, of golden daffodils;
+
+
+    Using the with pattern, we safely open the file and let Python close it for us.
+
+    To read a file one line at a time, use a for loop. That's it. Besides having explicit methods like read(), the stream object is also an iterator which spits out a single line every time we ask for a value.
+
+    Using the format() string method, we can print out the line number and the line itself. The format specifier {:<5} means print this argument left-justified within 5 spaces. The a_line variable contains the complete line, carriage returns and all. The rstrip() string method removes the trailing whitespace, including the carriage return characters.
+
+
+
+write()
+
+We can write to files in much the same way that we read from them. First, we open a file and get a file object, then we use methods on the stream object to write data to the file, then close the file.
+
+The method write() writes a string to the file. There is no return value. Due to buffering, the string may not actually show up in the file until the flush() or close() method is called.
+
+To open a file for writing, use the open() function and specify the write mode. There are two file modes for writing as listed in the earlier table:
+
+    write mode will overwrite the file when the mode='w' of the open() function.
+
+    append mode will add data to the end of the file when the mode='a' of the open() function.
+
+We should always close a file as soon as we're done writing to it, to release the file handle and ensure that the data is actually written to disk. As with reading data from a file, we can call the stream object's close() method, or we can use the with statement and let Python close the file for us.
+
+>>> with open('myfile', mode='w', encoding='utf-8') as file:
+	file.write('Copy and paste is a design error.')
+
+>>> with open('myfile', encoding='utf-8') as file:
+	print(file.read())
+	
+Copy and paste is a design error.
+>>> 
+>>> with open('myfile', mode='a', encoding='utf-8') as file:
+	file.write('\nTesting shows the presence, not the absence of bugs.')
+
+>>> with open('myfile', encoding='utf-8') as file:
+	print(file.read())
+
+Copy and paste is a design error.	
+Testing shows the presence, not the absence of bugs.
+
+We startedby creating the new file myfile, and opening the file for writing. The mode='w' parameter means open the file for writing. We can add data to the newly opened file with the write() method of the file object returned by the open() function. After the with block ends, Python automatically closes the file.
+
+Then, with mode='a' to append to the file instead of overwriting it. Appending will never harm the existing contents of the file. Both the original line we wrote and the second line we appended are now in the file. Also note that neither carriage returns nor line feeds are included. Note that we wrote a line feed with the '\n' character.
+
+
+
+
+Binary files
+
+python_image
+
+Picture file is not a text file. Binary files may contain any type of data, encoded in binary form for computer storage and processing purposes.
+
+Binary files are usually thought of as being a sequence of bytes, which means the binary digits (bits) are grouped in eights. Binary files typically contain bytes that are intended to be interpreted as something other than text characters. Compiled computer programs are typical examples; indeed, compiled applications (object files) are sometimes referred to, particularly by programmers, as binaries. But binary files can also contain images, sounds, compressed versions of other files, etc. - in short, any type of file content whatsoever.
+Some binary files contain headers, blocks of metadata used by a computer program to interpret the data in the file. For example, a GIF file can contain multiple images, and headers are used to identify and describe each block of image data. If a binary file does not contain any headers, it may be called a flat binary file. But the presence of headers are also common in plain text files, like email and html files. - wiki
+
+>>> my_image = open('python_image.png', mode='rb')
+>>> my_image.mode
+'rb'
+>>> my_image.name
+'python_image.png'
+>>> my_image.encoding
+Traceback (most recent call last):
+  File "", line 1, in 
+    my_image.encoding
+AttributeError: '_io.BufferedReader' object has no attribute 'encoding'
+
+Opening a file in binary mode is simple but subtle. The only difference from opening it in text mode is that the mode parameter contains a 'b' character. The stream object we get from opening a file in binary mode has many of the same attributes, including mode, which reflects the mode parameter we passed into the open() function. Binary file objects also have a name attribute, just like text file objects.
+
+However, a binary stream object has no encoding attribute. That's because we're reading bytes, not strings, so there's no conversion for Python to do.
+
+Let's continue to do more investigation on the binary:
+
+>>> my_image.tell()
+0
+>>> image_data = my_image.read(5)
+>>> image_data
+b'\x89PNG\r'
+>>> type(image_data)
+
+>>> my_image.tell()
+5
+>>> my_image.seek(0)
+0
+>>> image_data = my_image.read()
+>>> len(image_data)
+14922
+
+Like text files, we can read binary files a little bit at a time. As mentioned previously, there's a crucial difference. We're reading bytes, not strings. Since we opened the file in binary mode, the read() method takes the number of bytes to read, not the number of characters.
+
+That means that there's never an unexpected mismatch between the number we passed into the read() method and the position index we get out of the tell() method. The read() method reads bytes, and the seek() and tell() methods track the number of bytes read.
+
+
+
+read()
+
+size parameter
+
+We can read a stream object is with a read() method that takes an optional size parameter. Then, the read() method returns a string of that size. When called with no size parameter, the read() method should read everything there and return all the data as a single value. When called with a size parameter, it reads that much from the input source and returns that much data. When called again, it picks up where it left off and returns the next chunk of data.
+
+>>> import io
+>>> my_string = 'C is quirky, flawed, and an enormous success. - Dennis Ritchie (1941-2011)'
+>>> my_file = io.StringIO(my_string)
+>>> my_file.read()
+'C is quirky, flawed, and an enormous success. - Dennis Ritchie (1941-2011)'
+>>> my_file.read()
+''
+>>> my_file.seek(0)
+0
+>>> my_file.read(10)
+'C is quirk'
+>>> my_file.tell()
+10
+>>> my_file.seek(10)
+10
+>>> my_file.read()
+'y, flawed, and an enormous success. - Dennis Ritchie (1941-2011)'
+
+The io module defines the StringIO class that we can use to treat a string in memory as a file. To create a stream object out of a string, create an instance of the io.StringIO() class and pass it the string we want to use as our file data. Now we have a stream object, and we can do all sorts of stream-like things with it.
+
+Calling the read() method reads the entire file, which in the case of a StringIO object simply returns the original string.
+
+We can explicitly seek to the beginning of the string, just like seeking through a real file, by using the seek() method of the StringIO object. We can also read the string in chunks, by passing a size parameter to the read() method.
+
+
+Reading compressed files
+
+The Python standard library contains modules that support reading and writing compressed files. There are a number of different compression schemes. The two most popular on non-Windows systems are gzip and bzip2.
+
+Though it depends on the intended application. gzip is very fast and has small memory footprint. bzip2 can't compete with gzip in terms of speed or memory usage. bzip2 has notably better compression ratio than gzip, which has to be the reason for the popularity of bzip2; it is slower than gzip especially in decompression and uses more memory.
+
+gzip_vs_bzip2.png
+
+Data from gzip vs bzip2.
+
+The gzip module lets us create a stream object for reading or writing a gzip-compressed file. The stream object it gives us supports the read() method if we opened it for reading or the write() method if we opened it for writing. That means we can use the methods we've already learned for regular files to directly read or write a gzip-compressed file, without creating a temporary file to store the decompressed data.
+
+>>> import gzip
+>>> with gzip.open('myfile.g', mode='wb') as compressed:
+	compressed.write('640K ought to be enough for anybody (1981). - Bill Gates(1981)'.encode('utf-8'))
+
+$ ls -l myfile.gz
+-rwx------+ 1 Administrators None 82 Jan  3 22:38 myfile.gz
+
+$ gunzip myfile.gz
+
+$ cat myfile
+640K ought to be enough for anybody (1981). - Bill Gates(1981)
+
+We should always open gzipped files in binary mode. (Note the 'b' character in the mode argument.) The gzip file format includes a fixed-length header that contains some metadata about the file, so it's inefficient for extremely small files.
+
+The gunzip command decompresses the file and stores the contents in a new file named the same as the compressed file but without the .gz file extension. The cat command displays the contents of a file. This file contains the string we wrote directly to the compressed file myfile.gz from within the Python Shell.
+
+
+
+stdout and stderr
+
+
+stdout_stdin_stderr.png
+
+Picture from wiki
+
+stdin, stdout, and stderr are pipes that are built into every system such as Linux and MacOSX . When we call the print() function, the thing we're printing is sent to the stdout pipe. When our program crashes and prints out a traceback, it goes to the stderr pipe. By default, both of these pipes are just connected to the terminal. When our program prints something, we see the output in our terminal window, and when a program crashes, we see the traceback in our terminal window too. In the graphical Python Shell, the stdout and stderr pipes default to our IDE Window.
+
+>>> for n in range(2):
+	print('Java is to JavaScript what Car is to Carpet')
+	
+Java is to JavaScript what Car is to Carpet
+Java is to JavaScript what Car is to Carpet
+
+>>> import sys
+>>> for n in range(2):
+	s = sys.stdout.write('Simplicity is prerequisite for reliability. ')
+	
+Simplicity is prerequisite for reliability. Simplicity is prerequisite for reliability. 
+	
+>>> for n in range(2):
+	s = sys.stderr.write('stderr ')
+	
+stderr stderr
+
+The stdout is defined in the sys module, and it is a stream object. Calling its write() function will print out whatever string we give, then return the length of the output. In fact, this is what the print() function really does; it adds a carriage return to the end of the string we're printing, and calls sys.stdout.write.
+
+sys.stdout and sys.stderr send their output to the same place: the Python ide if we're in , or the terminal if we're running Python from the command line. Like standard output, standard error does not add carriage returns for us. If we want carriage returns, we'll need to write carriage return characters.
+
+Note that stdout and stderr are write-only. Attempting to call their read() method will always raise an IOError.
+
+>>> import sys
+>>> sys.stdout.read()
+Traceback (most recent call last):
+  File "", line 1, in 
+    sys.stdout.read()
+AttributeError: read
+
+
+
+stdout redirect
+
+stdout and stderr only support writing but they're not constants. They're variables! That means we can assign them a new value to redirect their output.
+
+#redirect.py
+import sys
+class StdoutRedirect:
+    def __init__(self, newOut):
+        self.newOut = newOut
+
+    def __enter__(self):
+        self.oldOut = sys.stdout
+        sys.stdout = self.newOut
+
+    def __exit__(self, *args):
+        sys.stdout = self.oldOut
+
+print('X')
+with open('output', mode='w', encoding='utf-8') as myFile:
+    with StdoutRedirect(myFile):
+	print('Y')
+print('Z')
+
+If we run it:
+
+$ python redirect.py
+X
+Z
+
+$ cat output
+Y
+
+We actually have two with statements, one nested within the scope of the other. The outer with statement opens a utf-8-encoded text file named output for writing and assigns the stream object to a variable named myFile.
+
+However,
+
+with StdoutRedirect(myFile):
+
+Where's the as clause?
+The with statement doesn't actually require one. We can have a with statement that doesn't assign the with context to a variable. In this case, we're only interested in the side effects of the StdoutRedirect context.
+
+What are those side effects?
+Take a look inside the StdoutRedirect class. This class is a custom context manager. Any class can be a context manager by defining two special methods: __enter__() and __exit__().
+
+The __init__() method is called immediately after an instance is created. It takes one parameter, the stream object that we want to use as standard output for the life of the context. This method just saves the stream object in an instance variable so other methods can use it later.
+
+The __enter__() method is a special class method. Python calls it when entering a context (i.e. at the beginning of the with statement). This method saves the current value of sys.stdout in self.oldOut, then redirects standard output by assigning self.newOut to sys.stdout.
+
+__exit__() method is another special class method. Python calls it when exiting the context (i.e. at the end of the with statement). This method restores standard output to its original value by assigning the saved self.oldOut value to sys.stdout.
+
+This with statement takes a comma-separated list of contexts. The comma-separated list acts like a series of nested with blocks. The first context listed is the outer block; the last one listed is the inner block. The first context opens a file; the second context redirects sys.stdout to the stream object that was created in the first context. Because this print() function is executed with the context created by the with statement, it will not print to the screen; it will write to the file output.
+
+Now, the with code block is over. Python has told each context manager to do whatever it is they do upon exiting a context. The context managers form a last-in-first-out stack. Upon exiting, the second context changed sys.stdout back to its original value, then the first context closed the file named output. Since standard output has been restored to its original value, calling the print() function will once again print to the screen.
+
+
+
+
+File read/write - sample
+
+The following example shows another example of reading and writing. It reads two data file (linux word dictionary, and top-level country domain names such as .us, .ly etc.), and find the combination of the two for a given length of the full domain name.
+
+# Finding a combination of words and domain name (.ly, .us, etc).
+LENGTH = 8
+
+d_list = []
+with open('domain.txt', 'r') as df:
+    for d in df:
+        d_list.append((d[0:2]).lower())
+print d_list[:10]
+d_list = ['us','ly']
+
+wf = open('words.txt', 'r') 
+w_list = wf.read().split()
+wf.close()
+
+print len(w_list)
+print w_list[:10]
+
+with open('domain_out.txt', 'w') as outf:
+    for d in d_list:
+        print '------- ', d, ' ------\n'
+        outf.write('------- ' + d +  ' ------\n')
+        for w in w_list:
+            if w[-2:] == d and len(w) == LENGTH:
+                print w[:-2] + '.' + d
+                outf.write(w[:-2] + '.' + d + '\n')
+
+Sample output:
+
+------- us ------
+...
+enormo.us
+exiguo.us
+fabulo.us
+genero.us
+glorio.us
+gorgeo.us
+...
+virtuo.us
+vitreo.us
+wondro.us
+------- ly ------
+Connol.ly
+Kimber.ly
+Thessa.ly
+abject.ly
+abrupt.ly
+absent.ly
+absurd.ly
+active.ly
+actual.ly
+...
+
+
+
+
+
+keyword finally
+
+The keyword finally makes a difference if our code returns early:
+
+try:
+    code1()
+except TypeError:
+    code2()
+    return None   
+finally:
+    other_code()
+
+With this code, the finally block is assured to run before the method returns. The cases when this could happen:
+
+    If an exception is thrown inside the except block.
+    If an exception is thrown in run_code1() but it's not a TypeError.
+    Other control flow statements such as continue and break statements.
+
+However, without the finally block:
+
+try:
+    run_code1()
+except TypeError:
+    run_code2()
+    return None   
+other_code()  
+
+the other_code() doesn't get run if there's an exception.
+
+
+
+
+
+Ph.D. / Golden Gate Ave, San Francisco / Seoul National Univ / Carnegie Mellon / UC Berkeley / DevOps / Deep Learning / Visualization
+
+Sponsor Open Source development activities and free contents for everyone.
+
+Thank you.
+
+- K Hong
+
+
+
+
+
+
+Python tutorial
+
+
+Python Home
+
+Introduction
+
+Running Python Programs (os, sys, import)
+
+Modules and IDLE (Import, Reload, exec)
+
+Object Types - Numbers, Strings, and None
+
+Strings - Escape Sequence, Raw String, and Slicing
+
+Strings - Methods
+
+Formatting Strings - expressions and method calls
+
+Files and os.path
+
+Traversing directories recursively
+
+Subprocess Module
+
+Regular Expressions with Python
+
+Object Types - Lists
+
+Object Types - Dictionaries and Tuples
+
+Functions def, *args, **kargs
+
+Functions lambda
+
+Built-in Functions
+
+map, filter, and reduce
+
+Decorators
+
+List Comprehension
+
+Sets (union/intersection) and itertools - Jaccard coefficient and shingling to check plagiarism
+
+Hashing (Hash tables and hashlib)
+
+Dictionary Comprehension with zip
+
+The yield keyword
+
+Generator Functions and Expressions
+
+generator.send() method
+
+Iterators
+
+Classes and Instances (__init__, __call__, etc.)
+
+if__name__ == '__main__'
+
+argparse
+
+Exceptions
+
+@static method vs class method
+
+Private attributes and private methods
+
+bits, bytes, bitstring, and constBitStream
+
+json.dump(s) and json.load(s)
+
+Python Object Serialization - pickle and json
+
+Python Object Serialization - yaml and json
+
+Priority queue and heap queue data structure
+
+Graph data structure
+
+Dijkstra's shortest path algorithm
+
+Prim's spanning tree algorithm
+
+Closure
+
+Functional programming in Python
+
+Remote running a local file using ssh
+
+SQLite 3 - A. Connecting to DB, create/drop table, and insert data into a table
+
+SQLite 3 - B. Selecting, updating and deleting data
+
+MongoDB with PyMongo I - Installing MongoDB ...
+
+Python HTTP Web Services - urllib, httplib2
+
+Web scraping with Selenium for checking domain availability
+
+REST API : Http Requests for Humans with Flask
+
+Blog app with Tornado
+
+Multithreading ...
+
+Python Network Programming I - Basic Server / Client : A Basics
+
+Python Network Programming I - Basic Server / Client : B File Transfer
+
+Python Network Programming II - Chat Server / Client
+
+Python Network Programming III - Echo Server using socketserver network framework
+
+Python Network Programming IV - Asynchronous Request Handling : ThreadingMixIn and ForkingMixIn
+
+Python Interview Questions I
+
+Python Interview Questions II
+
+Python Interview Questions III
+
+Python Interview Questions IV
+
+Python Interview Questions V
+
+Python Interview Questions VI
+
+Python Interview Questions VII
+
+Image processing with Python image library Pillow
+
+Python and C++ with SIP
+
+PyDev with Eclipse
+
+Matplotlib
+
+Redis with Python
+
+NumPy array basics A
+
+NumPy Matrix and Linear Algebra
+
+Pandas with NumPy and Matplotlib
+
+Celluar Automata
+
+Batch gradient descent algorithm
+
+Longest Common Substring Algorithm
+
+Python Unit Test - TDD using unittest.TestCase class
+
+Simple tool - Google page ranking by keywords
+
+Google App Hello World
+
+Google App webapp2 and WSGI
+
+Uploading Google App Hello World
+
+Python 2 vs Python 3
+
+virtualenv and virtualenvwrapper
+
+Uploading a big file to AWS S3 using boto module
+
+Scheduled stopping and starting an AWS instance
+
+Cloudera CDH5 - Scheduled stopping and starting services
+
+Removing Cloud Files - Rackspace API with curl and subprocess
+
+Checking if a process is running/hanging and stop/run a scheduled task on Windows
+
+Apache Spark 1.3 with PySpark (Spark Python API) Shell
+
+Apache Spark 1.2 Streaming
+
+bottle 0.12.7 - Fast and simple WSGI-micro framework for small web-applications ...
+
+Flask app with Apache WSGI on Ubuntu14/CentOS7 ...
+
+Selenium WebDriver
+
+Fabric - streamlining the use of SSH for application deployment
+
+Ansible Quick Preview - Setting up web servers with Nginx, configure enviroments, and deploy an App
+
+Neural Networks with backpropagation for XOR using one hidden layer
+
+NLP - NLTK (Natural Language Toolkit) ...
+
+RabbitMQ(Message broker server) and Celery(Task queue) ...
+
+OpenCV3 and Matplotlib ...
+
+Simple tool - Concatenating slides using FFmpeg ...
+
+iPython - Signal Processing with NumPy
+
+iPython and Jupyter - Install Jupyter, iPython Notebook, drawing with Matplotlib, and publishing it to Github
+
+iPython and Jupyter Notebook with Embedded D3.js
+
+Downloading YouTube videos using youtube-dl embedded with Python
+
+Machine Learning : scikit-learn ...
+
+Django 1.6/1.8 Web Framework ...
+
+
+Sponsor Open Source development activities and free contents for everyone.
+
+Thank you.
+
+- K Hong
+
+
+
+
+
+OpenCV 3 image and video processing with Python
+
+
+OpenCV 3 with Python
+
+Image - OpenCV BGR : Matplotlib RGB
+
+Basic image operations - pixel access
+
+iPython - Signal Processing with NumPy
+
+Signal Processing with NumPy I - FFT and DFT for sine, square waves, unitpulse, and random signal
+
+Signal Processing with NumPy II - Image Fourier Transform : FFT & DFT
+
+Inverse Fourier Transform of an Image with low pass filter: cv2.idft()
+
+Image Histogram
+
+Video Capture and Switching colorspaces - RGB / HSV
+
+Adaptive Thresholding - Otsu's clustering-based image thresholding
+
+Edge Detection - Sobel and Laplacian Kernels
+
+Canny Edge Detection
+
+Hough Transform - Circles
+
+Watershed Algorithm : Marker-based Segmentation I
+
+Watershed Algorithm : Marker-based Segmentation II
+
+Image noise reduction : Non-local Means denoising algorithm
+
+Image object detection : Face detection using Haar Cascade Classifiers
+
+Image segmentation - Foreground extraction Grabcut algorithm based on graph cuts
+
+Image Reconstruction - Inpainting (Interpolation) - Fast Marching Methods
+
+Video : Mean shift object tracking
+
+Machine Learning : Clustering - K-Means clustering I
+
+Machine Learning : Clustering - K-Means clustering II
+
+Machine Learning : Classification - k-nearest neighbors (k-NN) algorithm
+
+
+
+
+Machine Learning with scikit-learn
+
+
+scikit-learn installation
+
+scikit-learn : Features and feature extraction - iris dataset
+
+scikit-learn : Machine Learning Quick Preview
+
+scikit-learn : Data Preprocessing I - Missing / Categorical data
+
+scikit-learn : Data Preprocessing II - Partitioning a dataset / Feature scaling / Feature Selection / Regularization
+
+scikit-learn : Data Preprocessing III - Dimensionality reduction vis Sequential feature selection / Assessing feature importance via random forests
+
+Data Compression via Dimensionality Reduction I - Principal component analysis (PCA)
+
+scikit-learn : Data Compression via Dimensionality Reduction II - Linear Discriminant Analysis (LDA)
+
+scikit-learn : Data Compression via Dimensionality Reduction III - Nonlinear mappings via kernel principal component (KPCA) analysis
+
+scikit-learn : Logistic Regression, Overfitting & regularization
+
+scikit-learn : Supervised Learning & Unsupervised Learning - e.g. Unsupervised PCA dimensionality reduction with iris dataset
+
+scikit-learn : Unsupervised_Learning - KMeans clustering with iris dataset
+
+scikit-learn : Linearly Separable Data - Linear Model & (Gaussian) radial basis function kernel (RBF kernel)
+
+scikit-learn : Decision Tree Learning I - Entropy, Gini, and Information Gain
+
+scikit-learn : Decision Tree Learning II - Constructing the Decision Tree
+
+scikit-learn : Random Decision Forests Classification
+
+scikit-learn : Support Vector Machines (SVM)
+
+scikit-learn : Support Vector Machines (SVM) II
+
+Flask with Embedded Machine Learning I : Serializing with pickle and DB setup
+
+Flask with Embedded Machine Learning II : Basic Flask App
+
+Flask with Embedded Machine Learning III : Embedding Classifier
+
+Flask with Embedded Machine Learning IV : Deploy
+
+Flask with Embedded Machine Learning V : Updating the classifier
+
+scikit-learn : Sample of a spam comment filter using SVM - classifying a good one or a bad one
+
+
+
+Machine learning algorithms and concepts
+Batch gradient descent algorithm
+
+Single Layer Neural Network - Perceptron model on the Iris dataset using Heaviside step activation function
+
+Batch gradient descent versus stochastic gradient descent
+
+Single Layer Neural Network - Adaptive Linear Neuron using linear (identity) activation function with batch gradient descent method
+
+Single Layer Neural Network : Adaptive Linear Neuron using linear (identity) activation function with stochastic gradient descent (SGD)
+
+Logistic Regression
+
+VC (Vapnik-Chervonenkis) Dimension and Shatter
+
+Bias-variance tradeoff
+
+Maximum Likelihood Estimation (MLE)
+
+Neural Networks with backpropagation for XOR using one hidden layer
+
+minHash
+
+tf-idf weight
+
+Natural Language Processing (NLP): Sentiment Analysis I (IMDb & bag-of-words)
+
+Natural Language Processing (NLP): Sentiment Analysis II (tokenization, stemming, and stop words)
+
+Natural Language Processing (NLP): Sentiment Analysis III (training & cross validation)
+
+Natural Language Processing (NLP): Sentiment Analysis IV (out-of-core)
+
+Locality-Sensitive Hashing (LSH) using Cosine Distance (Cosine Similarity)
+
+
+
+Artificial Neural Networks (ANN)
+[Note] Sources are available at Github - Jupyter notebook files
+
+1. Introduction
+
+2. Forward Propagation
+
+3. Gradient Descent
+
+4. Backpropagation of Errors
+
+5. Checking gradient
+
+6. Training via BFGS
+
+7. Overfitting & Regularization
+
+8. Deep Learning I : Image Recognition (Image uploading)
+
+9. Deep Learning II : Image Recognition (Image classification)
+
+10 - Deep Learning III : Deep Learning III : Theano, TensorFlow, and Keras
+
+
+
+
